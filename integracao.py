@@ -2,6 +2,13 @@ import streamlit as st
 import gspread
 import pandas as pd
 
+# --- CONSTANTES GERAIS ---
+# Altura aproximada de uma linha no Streamlit: 35px
+ROW_HEIGHT = 35 
+# Altura do cabeçalho da tabela: 35px
+HEADER_HEIGHT = 35
+
+
 # 1. Função de Injeção de CSS (mantida sem alteração)
 def inject_custom_css():
     st.markdown(
@@ -24,7 +31,6 @@ def inject_custom_css():
         unsafe_allow_html=True
     )
 inject_custom_css()
-# --- FIM DO CSS ---
 
 
 # --- DADOS DA PLANILHA ---
@@ -38,6 +44,7 @@ st.caption("Dados carregados diretamente do Google Sheets usando st.secrets.")
 # Função de carregamento com cache (mantida sem alteração)
 @st.cache_data(ttl=600)  
 def load_data_from_sheet():
+    # ... (Código de autenticação e leitura dos dados)
     try:
         credentials = st.secrets["gcp_service_account"]
         gc = gspread.service_account_from_dict(credentials)
@@ -62,8 +69,15 @@ df = load_data_from_sheet()
 if not df.empty:
     st.subheader(f"Dados da Aba: {SHEET_NAME} (Total de linhas: {len(df)})")
     
-    # ⚠️ CORREÇÃO APLICADA AQUI: O parâmetro 'height=400' foi removido.
-    st.dataframe(df, use_container_width=True) 
+    # ⚠️ NOVIDADE: Cálculo dinâmico da altura para evitar scroll
+    # Altura total = (Número de linhas * altura da linha) + altura do cabeçalho
+    calculated_height = (len(df) * ROW_HEIGHT) + HEADER_HEIGHT
+
+    # CORREÇÃO APLICADA AQUI:
+    st.dataframe(df, 
+                 use_container_width=True, 
+                 hide_index=True, # <--- 1. Esconde a coluna numérica (0, 1, 2...)
+                 height=calculated_height) # <--- 2. Força a altura exata para todas as 20 linhas
     
     # Linha divisória
     st.markdown("---") 
