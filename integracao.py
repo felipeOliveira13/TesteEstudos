@@ -2,28 +2,20 @@ import streamlit as st
 import gspread
 import pandas as pd
 
-# 1. NOVO: Função de Injeção de CSS
+# 1. Função de Injeção de CSS (mantida sem alteração)
 def inject_custom_css():
     st.markdown(
         """
         <style>
-        /* Centraliza o título principal H1 */
         h1 {
             text-align: center;
         }
-        
-        /* Centraliza o texto secundário (caption) */
-        /* O seletor 'stCaptionContainer' alvo a div que contém o st.caption */
         div[data-testid="stCaptionContainer"] {
             text-align: center;
         }
-
-        /* ⚠️ CORREÇÃO PARA O BOTÃO: Impede a quebra de linha no texto */
         div.stButton > button:first-child {
-            white-space: nowrap; /* Garante que o texto fique em uma linha */
+            white-space: nowrap; 
         }
-        
-        /* Ajusta o padding para que o conteúdo não fique colado no topo (opcional) */
         .block-container {
             padding-top: 2rem;
         }
@@ -31,7 +23,6 @@ def inject_custom_css():
         """,
         unsafe_allow_html=True
     )
-# Chamada do CSS
 inject_custom_css()
 # --- FIM DO CSS ---
 
@@ -40,9 +31,7 @@ inject_custom_css()
 SHEET_ID = "1fa4HLFfjIFKHjHBuxW_ymHkahVPzeoB_XlHNJMaNCg8"
 SHEET_NAME = "Chevrolet Preços"
 
-# Título do Aplicativo Streamlit (centralizado via CSS)
 st.title("🚗 Tabela de Preços Chevrolet (Google Sheets)")
-# CENTRALIZADO: Este texto será centralizado pelo novo CSS
 st.caption("Dados carregados diretamente do Google Sheets usando st.secrets.")
 
 
@@ -52,12 +41,9 @@ def load_data_from_sheet():
     try:
         credentials = st.secrets["gcp_service_account"]
         gc = gspread.service_account_from_dict(credentials)
-        
         spreadsheet = gc.open_by_key(SHEET_ID)
         worksheet = spreadsheet.worksheet(SHEET_NAME)
-        
         df = pd.DataFrame(worksheet.get_all_records())
-        
         return df
     
     except KeyError:
@@ -76,18 +62,16 @@ df = load_data_from_sheet()
 if not df.empty:
     st.subheader(f"Dados da Aba: {SHEET_NAME} (Total de linhas: {len(df)})")
     
-    # Exibe o DataFrame com altura fixa
-    st.dataframe(df, height=400, use_container_width=True) 
+    # ⚠️ CORREÇÃO APLICADA AQUI: O parâmetro 'height=400' foi removido.
+    st.dataframe(df, use_container_width=True) 
     
     # Linha divisória
     st.markdown("---") 
     
-    # CORREÇÃO DE LAYOUT: USANDO COLUNAS [3, 4, 3] PARA MAIS ESPAÇO NO CENTRO
-    # O botão terá 40% da largura total, garantindo espaço suficiente.
+    # Lógica do botão (mantida sem alteração)
     col_left, col_center, col_right = st.columns([3, 4, 3])
     
     with col_center:
-        # O white-space: nowrap do CSS garante que o texto não quebre.
         if st.button(
             "🔄 Recarregar Dados", 
             help="Clique para buscar a versão mais recente dos dados da planilha."
