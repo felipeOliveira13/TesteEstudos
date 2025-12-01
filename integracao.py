@@ -2,7 +2,7 @@ import streamlit as st
 import gspread
 import pandas as pd
 
-# 1. NOVO: Função de Injeção de CSS para Centralizar Título e Aumentar Botão
+# 1. NOVO: Função de Injeção de CSS
 def inject_custom_css():
     st.markdown(
         """
@@ -12,11 +12,8 @@ def inject_custom_css():
             text-align: center;
         }
 
-        /* Aumenta a largura do botão 'Recarregar Dados' para 100% do seu contêiner */
-        /* Este seletor alvo a div que contém o botão para forçar a largura total */
-        div.stButton > button:first-child {
-            width: 100%;
-        }
+        /* REMOVEMOS AQUI O CÓDIGO CSS QUE FORÇAVA A LARGURA DO BOTÃO, 
+           permitindo que o Streamlit defina a largura natural para o texto. */
         
         /* Ajusta o padding para que o conteúdo não fique colado no topo (opcional) */
         .block-container {
@@ -35,7 +32,7 @@ inject_custom_css()
 SHEET_ID = "1fa4HLFfjIFKHjHBuxW_ymHkahVPzeoB_XlHNJMaNCg8"
 SHEET_NAME = "Chevrolet Preços"
 
-# Título do Aplicativo Streamlit (será centralizado pelo CSS acima)
+# Título do Aplicativo Streamlit (centralizado via CSS)
 st.title("🚗 Tabela de Preços Chevrolet (Google Sheets)")
 st.caption("Dados carregados diretamente do Google Sheets usando st.secrets.")
 
@@ -76,20 +73,19 @@ if not df.empty:
     # Linha divisória
     st.markdown("---") 
     
-    # O contêiner de duas colunas foi simplificado
-    col1, col2, col3 = st.columns([1, 1, 4]) # Usamos uma coluna extra vazia para espaçamento
+    # NOVO: USANDO COLUNAS PARA CENTRALIZAR O BOTÃO
+    # [3, 2, 3] garante que o espaço vazio na esquerda (3) e na direita (3)
+    # seja igual, centralizando o espaço do botão (2)
+    col_left, col_center, col_right = st.columns([3, 2, 3])
     
-    with col1:
-        # AQUI USAMOS O PARÂMETRO 'help' para criar o hover (tooltip).
-        # O CSS acima garante a largura total.
+    with col_center:
+        # O Streamlit agora ajustará a largura automaticamente para o texto
         if st.button(
             "🔄 Recarregar Dados", 
             help="Clique para buscar a versão mais recente dos dados da planilha."
         ):
             load_data_from_sheet.clear()
             st.rerun() 
-            
-    # O st.info foi removido, pois sua mensagem está agora no 'help' do botão.
             
 else:
     st.warning("Não foi possível carregar os dados. Verifique os logs de erro acima.")
