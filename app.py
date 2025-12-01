@@ -133,7 +133,7 @@ SHEET_ID = "1fa4HLFfjIFKHjHBuxW_ymHkahVPzeoB_XlHNJMaNCg8"
 SHEET_NAME = "Chevrolet Preços"
 
 # Função de carregamento com cache
-@st.cache_data(ttl=600)  
+@st.cache_data(ttl=600)
 def load_data_from_sheet():
     try:
         credentials = st.secrets["gcp_service_account"]
