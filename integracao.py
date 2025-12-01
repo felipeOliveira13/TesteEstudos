@@ -7,40 +7,47 @@ ROW_HEIGHT = 35
 HEADER_HEIGHT = 35
 
 
-# 1. FUNÇÃO DE INJEÇÃO DE CSS (NOVO TEMA NEUTRO)
+# 1. FUNÇÃO DE INJEÇÃO DE CSS (TEMA ESCURO RESTAURADO + FILTROS NEUTROS)
 def inject_custom_css():
     st.markdown(
         """
         <style>
-        /* 1. TEMA NEUTRO: Fundo da Página (Light Gray) e Cor do Texto */
+        /* 1. REVERTE TEMA: Fundo Escuro (Dark Theme) */
         .stApp {
-            background-color: #F0F2F6; /* Cinza Claro (Padrão Streamlit Light) */
-            color: #333333; /* Cor do texto principal */
+            background-color: #0E1117; /* Fundo escuro original */
+            color: white; /* Texto claro */
         }
         
-        /* 2. Título Principal (Cor Sóbria e Centralizada) */
+        /* 2. Garante que Títulos e Subtítulos sejam brancos */
+        h1, h2, h3 {
+            color: white;
+        }
+        
+        /* 3. Centraliza o Título Principal */
         h1 {
             text-align: center;
-            color: #2E4053; /* Azul Marinho Profundo para forte contraste */
-        }
-        
-        /* 3. Subtítulos (Headers) e Outros Textos */
-        h2, h3 {
-            color: #333333;
         }
 
-        /* 4. Centraliza e define cor do texto secundário (caption) */
+        /* 4. Centraliza o texto secundário */
         div[data-testid="stCaptionContainer"] {
             text-align: center;
-            color: #555555; 
+            color: #CCCCCC;
         }
-
-        /* 5. Garante que o texto do botão não quebre (mantido) */
+        
+        /* 5. ALTERAÇÃO CRÍTICA: COR DOS RÓTULOS (TAGS) DOS FILTROS */
+        /* Alvo: Os chips (tags) de itens selecionados no multiselect */
+        span[data-baseweb="tag"] {
+            background-color: #495057 !important; /* Cinza discreto/neutro */
+            color: white !important;
+            border: none !important;
+        }
+        
+        /* 6. CORREÇÃO: Garante que o texto do botão não quebre */
         div.stButton > button:first-child {
             white-space: nowrap; 
         }
 
-        /* 6. Outros ajustes de padding */
+        /* 7. Outros ajustes de padding */
         .block-container {
             padding-top: 2rem;
         }
@@ -87,9 +94,7 @@ df = load_data_from_sheet()
 
 if not df.empty:
     
-    # =============================================================
-    # SEÇÃO DE FILTROS INTERATIVOS
-    # =============================================================
+    # SEÇÃO DE FILTROS INTERATIVOS (MANTIDA)
     st.markdown("---")
     st.subheader("Filtros de Dados")
     
@@ -117,13 +122,11 @@ if not df.empty:
     ]
     
     
-    # =============================================================
-    # SEÇÃO DE MÉTRICAS (KPIs)
-    # =============================================================
+    # SEÇÃO DE MÉTRICAS (MANTIDA)
     if not df_filtered.empty:
         total_carros = len(df_filtered)
-        # O .mean() e .max() exigem que a coluna de preço seja numérica (float/int)
         try:
+            # Garante que a coluna de preço seja numérica para o cálculo
             prices = pd.to_numeric(df_filtered['Preço (R$)'].astype(str).str.replace(r'[R$.,]', '', regex=True), errors='coerce')
             preco_medio = prices.mean()
             preco_max = prices.max()
@@ -143,23 +146,17 @@ if not df.empty:
             )
             
         with metric_col2:
-            st.metric(
-                label="💰 Preço Médio (R$)", 
-                value=f"R$ {preco_medio:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".") if preco_medio > 0 else "N/A" # Formato BRL
-            )
+            # Formato BRL: 1.000,00
+            value_medio = f"R$ {preco_medio:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".") if preco_medio > 0 else "N/A"
+            st.metric(label="💰 Preço Médio (R$)", value=value_medio)
             
         with metric_col3:
-            st.metric(
-                label="🔝 Preço Máximo (R$)", 
-                value=f"R$ {preco_max:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".") if preco_max > 0 else "N/A" # Formato BRL
-            )
+            value_max = f"R$ {preco_max:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".") if preco_max > 0 else "N/A"
+            st.metric(label="🔝 Preço Máximo (R$)", value=value_max)
             
         st.markdown("---") 
     
-    # =============================================================
     # EXIBIÇÃO DA TABELA (DATAFRAME)
-    # =============================================================
-
     st.subheader(f"Dados da Aba: {SHEET_NAME} (Linhas exibidas: {len(df_filtered)})")
     
     calculated_height = (len(df_filtered) * ROW_HEIGHT) + HEADER_HEIGHT
@@ -169,7 +166,7 @@ if not df.empty:
                  hide_index=True, 
                  height=calculated_height) 
     
-    # Botão de Recarregar
+    # Botão de Recarregar (mantido)
     st.markdown("---") 
     col_left, col_center, col_right = st.columns([3, 4, 3])
     
