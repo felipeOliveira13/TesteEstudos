@@ -3,9 +3,7 @@ import gspread
 import pandas as pd
 
 # --- CONSTANTES GERAIS ---
-# Altura aproximada de uma linha no Streamlit: 35px
 ROW_HEIGHT = 35 
-# Altura do cabeçalho da tabela: 35px
 HEADER_HEIGHT = 35
 
 
@@ -44,13 +42,16 @@ st.caption("Dados carregados diretamente do Google Sheets usando st.secrets.")
 # Função de carregamento com cache (mantida sem alteração)
 @st.cache_data(ttl=600)  
 def load_data_from_sheet():
-    # ... (Código de autenticação e leitura dos dados)
     try:
         credentials = st.secrets["gcp_service_account"]
         gc = gspread.service_account_from_dict(credentials)
         spreadsheet = gc.open_by_key(SHEET_ID)
         worksheet = spreadsheet.worksheet(SHEET_NAME)
         df = pd.DataFrame(worksheet.get_all_records())
+        
+        # 💡 Dica: Certifique-se de que a coluna 'Ano' é um número inteiro (int)
+        df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce').fillna(0).astype(int)
+        
         return df
     
     except KeyError:
@@ -67,22 +68,67 @@ def load_data_from_sheet():
 df = load_data_from_sheet()
 
 if not df.empty:
-    st.subheader(f"Dados da Aba: {SHEET_NAME} (Total de linhas: {len(df)})")
     
-    # ⚠️ NOVIDADE: Cálculo dinâmico da altura para evitar scroll
-    # Altura total = (Número de linhas * altura da linha) + altura do cabeçalho
-    calculated_height = (len(df) * ROW_HEIGHT) + HEADER_HEIGHT
+    # =============================================================
+    # 2. NOVIDADE: SEÇÃO DE FILTROS INTERATIVOS
+    # =============================================================
+    st.markdown("---")
+    st.subheader("Filtros de Dados")
+    
+    # Cria duas colunas para os filtros ficarem lado a lado
+    filter_col1, filter_col2 = st.columns(2)
+    
+    # --- FILTRO 1: MODELO ---
+    with filter_col1:
+        # Pega todos os modelos únicos e remove valores vazios (se houver)
+        all_models = sorted(df['Modelo'].unique())
+        
+        # O multiselect permite selecionar vários modelos
+        selected_models = st.multiselect(
+            "Selecione o(s) Modelo(s) de Carro:",
+            options=all_models,
+            default=all_models # Padrão: todos selecionados
+        )
 
-    # CORREÇÃO APLICADA AQUI:
-    st.dataframe(df, 
+    # --- FILTRO 2: ANO ---
+    with filter_col2:
+        # Pega todos os anos únicos e ordena
+        all_years = sorted(df['Ano'].unique())
+        
+        # O multiselect permite selecionar vários anos
+        selected_years = st.multiselect(
+            "Selecione o(s) Ano(s) de Fabricação:",
+            options=all_years,
+            default=all_years # Padrão: todos selecionados
+        )
+
+    # --- 3. APLICAÇÃO DOS FILTROS ---
+    df_filtered = df[
+        (df['Modelo'].isin(selected_models)) &
+        (df['Ano'].isin(selected_years))
+    ]
+    
+    # =============================================================
+    # FIM DA SEÇÃO DE FILTROS
+    # =============================================================
+
+    st.markdown("---")
+    
+    # 4. EXIBIÇÃO DO DATAFRAME FILTRADO
+    
+    # Exibe o subheader com a contagem de linhas filtradas
+    st.subheader(f"Dados da Aba: {SHEET_NAME} (Linhas exibidas: {len(df_filtered)})")
+    
+    # Recalcula a altura baseada no novo número de linhas (df_filtered)
+    calculated_height = (len(df_filtered) * ROW_HEIGHT) + HEADER_HEIGHT
+
+    st.dataframe(df_filtered, 
                  use_container_width=True, 
-                 hide_index=True, # <--- 1. Esconde a coluna numérica (0, 1, 2...)
-                 height=calculated_height) # <--- 2. Força a altura exata para todas as 20 linhas
+                 hide_index=True, 
+                 height=calculated_height) 
     
-    # Linha divisória
+    # Linha divisória e Botão de Recarregar (mantidos)
     st.markdown("---") 
-    
-    # Lógica do botão (mantida sem alteração)
     col_left, col_center, col_right = st.columns([3, 4, 3])
     
     with col_center:
