@@ -11,9 +11,7 @@ st.title("🚗 Tabela de Preços Chevrolet (Google Sheets)")
 st.caption("Dados carregados diretamente do Google Sheets usando st.secrets.")
 
 
-# Função para carregar os dados. O cache garante que a planilha
-# só será lida a cada 10 minutos (ttl=600).
-# O nome da função é importante, pois o Streamlit a usa como chave de cache.
+# Função de carregamento com cache (mantida sem alteração)
 @st.cache_data(ttl=600)  
 def load_data_from_sheet():
     try:
@@ -39,27 +37,33 @@ def load_data_from_sheet():
         return pd.DataFrame()
 
 
-# --- NOVO BOTÃO DE RECARREGAMENTO ---
-# 1. Cria um contêiner para posicionar o botão acima dos dados.
-with st.container():
-    col1, col2 = st.columns([1, 4])
-    
-    # 2. Define a lógica do botão.
-    with col1:
-        if st.button("🔄 Recarregar Dados"):
-            # A linha mágica: Limpa o cache da função específica.
-            load_data_from_sheet.clear()
-            st.rerun() # Opcional, mas garante o recarregamento imediato
-        
-    with col2:
-        st.info("Clique para buscar a versão mais recente dos dados da planilha.")
-        
-
 # --- EXECUÇÃO DO APLICATIVO ---
 df = load_data_from_sheet()
 
 if not df.empty:
     st.subheader(f"Dados da Aba: {SHEET_NAME} (Total de linhas: {len(df)})")
-    st.dataframe(df)
+    
+    # Exibe o DataFrame com uma altura fixa de 400px, adicionando scroll interno
+    # para evitar que a tabela se expanda indefinidamente na página.
+    st.dataframe(df, height=400, use_container_width=True) 
+    
+    # ----------------------------------------------------------------------
+    # O BOTÃO FOI MOVIDO PARA DEPOIS DA TABELA, CONFORME SOLICITADO.
+    # ----------------------------------------------------------------------
+    
+    # NOVO: Contêiner para posicionar o botão logo abaixo da tabela
+    st.markdown("---") # Linha divisória para separar visualmente
+    with st.container():
+        col1, col2 = st.columns([1, 4])
+        
+        # Lógica do botão de recarregamento
+        with col1:
+            if st.button("🔄 Recarregar Dados"):
+                load_data_from_sheet.clear()
+                st.rerun() 
+            
+        with col2:
+            st.info("Clique para buscar a versão mais recente dos dados da planilha.")
+            
 else:
     st.warning("Não foi possível carregar os dados. Verifique os logs de erro acima.")
